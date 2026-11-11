@@ -48,3 +48,79 @@ db.patrolInspections.find(
     fine_details: 1
   }
 )
+
+// Query #5
+db.hazardousIncidents.aggregate([
+  {
+    $match: {
+      status: { $nin: ["Remediated", "Closed"] }
+    }
+  },
+  {
+    $group: {
+      _id: "$address.district",
+      unresolved_incidents: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { unresolved_incidents: -1 }
+  },
+  {
+    $limit: 5
+  }
+])
+
+// Query #6
+db.hazardousIncidents.aggregate([
+  {
+    $match: {
+      "citizen_reporter.verified_reporter": true,
+      reported_date: {
+        $gte: new Date(new Date().setMonth(new Date().getMonth() - 6))
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$citizen_reporter.username",
+      reports: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { reports: -1 }
+  }
+])
+
+// Query #10
+db.hazardousIncidents.find(
+  {
+    reported_date: {
+      $gte: ISODate("2026-01-01T00:00:00Z"),
+      $lt: ISODate("2026-04-01T00:00:00Z")
+    }
+  },
+  {
+    _id: 0,
+    incident_id: 1,
+    reported_date: 1,
+    status: 1,
+    address: 1
+  }
+).sort({ reported_date: 1 })
+
+// Query #11
+db.patrolInspections.find(
+  {
+    inspection_date: {
+      $gte: ISODate("2026-01-01T00:00:00Z"),
+      $lt: ISODate("2026-04-01T00:00:00Z")
+    }
+  },
+  {
+    _id: 0,
+    inspection_id: 1,
+    incident_ref: 1,
+    inspection_date: 1,
+    infraction_confirmed: 1
+  }
+).sort({ inspection_date: 1 })
