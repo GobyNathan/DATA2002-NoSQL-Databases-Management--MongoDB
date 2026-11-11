@@ -108,19 +108,3 @@ db.hazardousIncidents.find(
   }
 ).sort({ reported_date: 1 })
 
-// Query #11
-db.patrolInspections.find(
-  {
-    inspection_date: {
-      $gte: ISODate("2026-01-01T00:00:00Z"),
-      $lt: ISODate("2026-04-01T00:00:00Z")
-    }
-  },
-  {
-    _id: 0,
-    inspection_id: 1,
-    incident_ref: 1,
-    inspection_date: 1,
-    infraction_confirmed: 1
-  }
-).sort({ inspection_date: 1 })
