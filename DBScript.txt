@@ -1,0 +1,50 @@
+use urban_waste_db
+
+// Query #2
+db.hazardousIncidents.find(
+  {
+    hazard_level: { $gte: 4.0 },
+    is_contained: false
+  },
+  {
+    _id: 0,
+    incident_id: 1,
+    hazard_level: 1,
+    is_contained: 1,
+    status: 1
+  }
+).sort({ hazard_level: -1 })
+
+// Query #3
+db.hazardousIncidents.find(
+  {
+    waste_type: {
+      $in: ["asbestos", "industrial_solvents"]
+    }
+  },
+  {
+    _id: 0,
+    incident_id: 1,
+    waste_type: 1,
+    hazard_level: 1
+  }
+)
+
+// Query #4
+db.patrolInspections.find(
+  {
+    infraction_confirmed: true,
+    fine_issued: true,
+    "fine_details.payment_status": {
+      $exists: true,
+      $not: /^paid$/i
+    }
+  },
+  {
+    _id: 0,
+    inspection_id: 1,
+    incident_ref: 1,
+    violations_detected: 1,
+    fine_details: 1
+  }
+)
