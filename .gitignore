@@ -1,10 +1,9 @@
-Documentation/
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 .venv/
 venv/
-.env
+env/
+.DS_Store
 .vscode/
 .idea/
-.DS_Store
-Thumbs.db
