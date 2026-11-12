@@ -1,6 +1,6 @@
 use urban_waste_db
 
-// Query #2
+// Query #2: Find high-risk incidents that are not contained.
 db.hazardousIncidents.find(
   {
     hazard_level: { $gte: 4.0 },
@@ -15,7 +15,7 @@ db.hazardousIncidents.find(
   }
 ).sort({ hazard_level: -1 })
 
-// Query #3
+// Query #3: Find incidents involving selected waste types.
 db.hazardousIncidents.find(
   {
     waste_type: {
@@ -30,7 +30,7 @@ db.hazardousIncidents.find(
   }
 )
 
-// Query #4
+// Query #4: Find confirmed violations with unpaid fines.
 db.patrolInspections.find(
   {
     infraction_confirmed: true,
@@ -49,7 +49,7 @@ db.patrolInspections.find(
   }
 )
 
-// Query #5
+// Query #5: Find the five districts with the most unresolved incidents.
 db.hazardousIncidents.aggregate([
   {
     $match: {
@@ -70,7 +70,7 @@ db.hazardousIncidents.aggregate([
   }
 ])
 
-// Query #6
+// Query #6: Find the most active verified reporters in the last six months.
 db.hazardousIncidents.aggregate([
   {
     $match: {
@@ -91,7 +91,7 @@ db.hazardousIncidents.aggregate([
   }
 ])
 
-// Query #10
+// Query #10: Find incidents reported within a date range.
 db.hazardousIncidents.find(
   {
     reported_date: {
@@ -107,4 +107,3 @@ db.hazardousIncidents.find(
     address: 1
   }
 ).sort({ reported_date: 1 })
-
