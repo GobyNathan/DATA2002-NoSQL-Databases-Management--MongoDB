@@ -1,0 +1,584 @@
+// select the database
+
+use urban_waste_db
+
+// create the hazardousIncidents collection
+
+db.createCollection("hazardousIncidents")
+
+// create the patrolInspections collection
+
+db.createCollection("patrolInspections")
+
+// create a 2dsphere index for geographical searches and inspection locations
+
+db.hazardousIncidents.createIndex({ location: "2dsphere" })
+db.patrolInspections.createIndex({ site_coordinates: "2dsphere" })
+
+// waste incidents
+
+db.hazardousIncidents.insertMany([
+  {
+    incident_id: "INC-2026-001",
+    reported_date: ISODate("2026-10-15"),
+    waste_type: ["Chemicals", "Oil"],
+    hazard_level: 4.5,
+    is_contained: false,
+    estimated_volume_m: 2.5,
+    status: "Open",
+    location: {
+      type: "Point",
+      coordinates: [-6.2603, 53.3498]
+    },
+    address: {
+      street: "O'Connell Street",
+      district: "North City",
+      city: "Dublin",
+      postal_code: "D01"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-001",
+      username: "dublin_user01",
+      contact_phone: "0871234567",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  },
+  {
+    incident_id: "INC-2026-002",
+    reported_date: ISODate("2026-10-18"),
+    waste_type: ["Batteries", "Electronics"],
+    hazard_level: 3.5,
+    is_contained: true,
+    estimated_volume_m: 1.2,
+    status: "Under Inspection",
+    location: {
+      type: "Point",
+      coordinates: [-6.2675, 53.3472]
+    },
+    address: {
+      street: "Capel Street",
+      district: "North City",
+      city: "Dublin",
+      postal_code: "D01"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-002",
+      username: "green_dublin",
+      contact_phone: "0862345678",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  },
+  {
+    incident_id: "INC-2026-003",
+    reported_date: ISODate("2026-10-20"),
+    waste_type: ["Construction Materials", "Asbestos"],
+    hazard_level: 5.0,
+    is_contained: false,
+    estimated_volume_m: 4.8,
+    status: "Open",
+    location: {
+      type: "Point",
+      coordinates: [-6.2920, 53.3438]
+    },
+    address: {
+      street: "Thomas Street",
+      district: "South City",
+      city: "Dublin",
+      postal_code: "D08"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-003",
+      username: "local_resident03",
+      contact_phone: "0853456789",
+      is_anonymous: true,
+      verified_reporter: false
+    }
+  },
+  {
+    incident_id: "INC-2026-004",
+    reported_date: ISODate("2026-10-22"),
+    waste_type: ["Oil", "Chemicals"],
+    hazard_level: 4.0,
+    is_contained: false,
+    estimated_volume_m: 3.0,
+    status: "Under Inspection",
+    location: {
+      type: "Point",
+      coordinates: [-6.2300, 53.3600]
+    },
+    address: {
+      street: "East Wall Road",
+      district: "East Wall",
+      city: "Dublin",
+      postal_code: "D03"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-004",
+      username: "eco_reporter04",
+      contact_phone: "0874567890",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  },
+  {
+    incident_id: "INC-2026-005",
+    reported_date: ISODate("2026-10-25"),
+    waste_type: ["Paint", "Solvents"],
+    hazard_level: 3.0,
+    is_contained: true,
+    estimated_volume_m: 0.8,
+    status: "Remediated",
+    location: {
+      type: "Point",
+      coordinates: [-6.3030, 53.3360]
+    },
+    address: {
+      street: "Cork Street",
+      district: "South City",
+      city: "Dublin",
+      postal_code: "D08"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-005",
+      username: "clean_city05",
+      contact_phone: "0865678901",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  },
+  {
+    incident_id: "INC-2026-006",
+    reported_date: ISODate("2026-10-28"),
+    waste_type: ["Car Batteries", "Electronics"],
+    hazard_level: 4.2,
+    is_contained: false,
+    estimated_volume_m: 1.5,
+    status: "Open",
+    location: {
+      type: "Point",
+      coordinates: [-6.2750, 53.3610]
+    },
+    address: {
+      street: "North Circular Road",
+      district: "Phibsborough",
+      city: "Dublin",
+      postal_code: "D07"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-006",
+      username: "dublin_watch06",
+      contact_phone: "0856789012",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  },
+  {
+    incident_id: "INC-2026-007",
+    reported_date: ISODate("2026-11-01"),
+    waste_type: ["Industrial Chemicals"],
+    hazard_level: 4.8,
+    is_contained: false,
+    estimated_volume_m: 5.2,
+    status: "Under Inspection",
+    location: {
+      type: "Point",
+      coordinates: [-6.2150, 53.3480]
+    },
+    address: {
+      street: "East Road",
+      district: "North Docklands",
+      city: "Dublin",
+      postal_code: "D01"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-007",
+      username: "city_guard07",
+      contact_phone: "0877890123",
+      is_anonymous: true,
+      verified_reporter: false
+    }
+  },
+  {
+    incident_id: "INC-2026-008",
+    reported_date: ISODate("2026-11-04"),
+    waste_type: ["Plastic Waste", "Oil"],
+    hazard_level: 2.5,
+    is_contained: true,
+    estimated_volume_m: 1.0,
+    status: "Closed",
+    location: {
+      type: "Point",
+      coordinates: [-6.3100, 53.3550]
+    },
+    address: {
+      street: "Inchicore Road",
+      district: "Inchicore",
+      city: "Dublin",
+      postal_code: "D08"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-008",
+      username: "recycle_dublin08",
+      contact_phone: "0868901234",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  },
+  {
+    incident_id: "INC-2026-009",
+    reported_date: ISODate("2026-11-07"),
+    waste_type: ["Chemicals", "Paint"],
+    hazard_level: 3.8,
+    is_contained: false,
+    estimated_volume_m: 2.0,
+    status: "Open",
+    location: {
+      type: "Point",
+      coordinates: [-6.2450, 53.3260]
+    },
+    address: {
+      street: "Rathmines Road",
+      district: "Rathmines",
+      city: "Dublin",
+      postal_code: "D06"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-009",
+      username: "resident09",
+      contact_phone: "0859012345",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  },
+  {
+    incident_id: "INC-2026-010",
+    reported_date: ISODate("2026-11-10"),
+    waste_type: ["Batteries", "Industrial Chemicals"],
+    hazard_level: 4.7,
+    is_contained: false,
+    estimated_volume_m: 3.5,
+    status: "Under Inspection",
+    location: {
+      type: "Point",
+      coordinates: [-6.3300, 53.3420]
+    },
+    address: {
+      street: "Kylemore Road",
+      district: "Ballyfermot",
+      city: "Dublin",
+      postal_code: "D10"
+    },
+    citizen_reporter: {
+      citizen_id: "CIT-010",
+      username: "eco_dublin10",
+      contact_phone: "0870123456",
+      is_anonymous: false,
+      verified_reporter: true
+    }
+  }
+])
+
+// patrol inspections
+
+db.patrolInspections.insertMany([
+  {
+    inspection_id: "INS-2026-101",
+    incident_ref: "INC-2026-001",
+    inspection_date: ISODate("2026-10-16"),
+    patrol_officer: {
+      badge_id: "OFF-001",
+      officer_name: "John Murphy",
+      vehicle_unit: "UNIT-05"
+    },
+    violations_detected: ["illegal_spill", "unlicensed_disposal"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 750.0,
+      offender_name: "Dublin Industrial Ltd",
+      payment_status: "Unpaid"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "Dublin Waste Services",
+      assigned_date: ISODate("2026-10-17"),
+      cost_eur: 350.0,
+      collected_weight_kg: 120.5
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.2603, 53.3498]
+    }
+  },
+  {
+    inspection_id: "INS-2026-102",
+    incident_ref: "INC-2026-002",
+    inspection_date: ISODate("2026-10-19"),
+    patrol_officer: {
+      badge_id: "OFF-002",
+      officer_name: "Sarah Kelly",
+      vehicle_unit: "UNIT-03"
+    },
+    violations_detected: ["illegal_dumping"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 400.0,
+      offender_name: "Green Transport Ltd",
+      payment_status: "Paid"
+    },
+    cleanup_required: false,
+    dispatch_cleanup_crew: null,
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.2675, 53.3472]
+    }
+  },
+  {
+    inspection_id: "INS-2026-103",
+    incident_ref: "INC-2026-003",
+    inspection_date: ISODate("2026-10-21"),
+    patrol_officer: {
+      badge_id: "OFF-003",
+      officer_name: "Michael Byrne",
+      vehicle_unit: "UNIT-08"
+    },
+    violations_detected: ["illegal_spill", "hazardous_materials"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 1200.0,
+      offender_name: "BuildPro Construction",
+      payment_status: "Unpaid"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "Safe Environment Dublin",
+      assigned_date: ISODate("2026-10-22"),
+      cost_eur: 850.0,
+      collected_weight_kg: 320.0
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.2920, 53.3438]
+    }
+  },
+  {
+    inspection_id: "INS-2026-104",
+    incident_ref: "INC-2026-004",
+    inspection_date: ISODate("2026-10-24"),
+    patrol_officer: {
+      badge_id: "OFF-004",
+      officer_name: "Emma Walsh",
+      vehicle_unit: "UNIT-02"
+    },
+    violations_detected: ["illegal_spill"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 600.0,
+      offender_name: "East Wall Logistics",
+      payment_status: "Pending"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "Dublin Waste Services",
+      assigned_date: ISODate("2026-10-25"),
+      cost_eur: 420.0,
+      collected_weight_kg: 180.0
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.2300, 53.3600]
+    }
+  },
+  {
+    inspection_id: "INS-2026-105",
+    incident_ref: "INC-2026-005",
+    inspection_date: ISODate("2026-10-26"),
+    patrol_officer: {
+      badge_id: "OFF-005",
+      officer_name: "David Nolan",
+      vehicle_unit: "UNIT-06"
+    },
+    violations_detected: ["unlicensed_disposal"],
+    infraction_confirmed: true,
+    fine_issued: false,
+    fine_details: {
+      amount_eur: 0.0,
+      offender_name: "Unknown",
+      payment_status: "Not Applicable"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "City Clean Team",
+      assigned_date: ISODate("2026-10-27"),
+      cost_eur: 180.0,
+      collected_weight_kg: 65.0
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.3030, 53.3360]
+    }
+  },
+  {
+    inspection_id: "INS-2026-106",
+    incident_ref: "INC-2026-006",
+    inspection_date: ISODate("2026-10-29"),
+    patrol_officer: {
+      badge_id: "OFF-006",
+      officer_name: "Laura Doyle",
+      vehicle_unit: "UNIT-04"
+    },
+    violations_detected: ["illegal_dumping", "unlicensed_transport"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 500.0,
+      offender_name: "North Recycling Ltd",
+      payment_status: "Unpaid"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "Safe Environment Dublin",
+      assigned_date: ISODate("2026-10-30"),
+      cost_eur: 275.0,
+      collected_weight_kg: 95.5
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.2750, 53.3610]
+    }
+  },
+  {
+    inspection_id: "INS-2026-107",
+    incident_ref: "INC-2026-007",
+    inspection_date: ISODate("2026-11-02"),
+    patrol_officer: {
+      badge_id: "OFF-007",
+      officer_name: "Patrick Ryan",
+      vehicle_unit: "UNIT-01"
+    },
+    violations_detected: ["hazardous_materials", "illegal_spill"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 1500.0,
+      offender_name: "Docklands Chemical Group",
+      payment_status: "Unpaid"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "Dublin Waste Services",
+      assigned_date: ISODate("2026-11-03"),
+      cost_eur: 950.0,
+      collected_weight_kg: 410.0
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.2150, 53.3480]
+    }
+  },
+  {
+    inspection_id: "INS-2026-108",
+    incident_ref: "INC-2026-008",
+    inspection_date: ISODate("2026-11-05"),
+    patrol_officer: {
+      badge_id: "OFF-008",
+      officer_name: "Aoife Byrne",
+      vehicle_unit: "UNIT-07"
+    },
+    violations_detected: [],
+    infraction_confirmed: false,
+    fine_issued: false,
+    fine_details: {
+      amount_eur: 0.0,
+      offender_name: "Unknown",
+      payment_status: "Not Applicable"
+    },
+    cleanup_required: false,
+    dispatch_cleanup_crew: null,
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.3100, 53.3550]
+    }
+  },
+  {
+    inspection_id: "INS-2026-109",
+    incident_ref: "INC-2026-009",
+    inspection_date: ISODate("2026-11-08"),
+    patrol_officer: {
+      badge_id: "OFF-009",
+      officer_name: "Sean Fitzgerald",
+      vehicle_unit: "UNIT-09"
+    },
+    violations_detected: ["illegal_dumping"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 350.0,
+      offender_name: "Rathmines Maintenance Ltd",
+      payment_status: "Paid"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "City Clean Team",
+      assigned_date: ISODate("2026-11-09"),
+      cost_eur: 220.0,
+      collected_weight_kg: 75.0
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.2450, 53.3260]
+    }
+  },
+  {
+    inspection_id: "INS-2026-110",
+    incident_ref: "INC-2026-010",
+    inspection_date: ISODate("2026-11-11"),
+    patrol_officer: {
+      badge_id: "OFF-010",
+      officer_name: "Niamh O'Connor",
+      vehicle_unit: "UNIT-10"
+    },
+    violations_detected: ["illegal_spill", "unlicensed_transport"],
+    infraction_confirmed: true,
+    fine_issued: true,
+    fine_details: {
+      amount_eur: 900.0,
+      offender_name: "Ballyfermot Industrial Ltd",
+      payment_status: "Pending"
+    },
+    cleanup_required: true,
+    dispatch_cleanup_crew: {
+      contractor_name: "Safe Environment Dublin",
+      assigned_date: ISODate("2026-11-12"),
+      cost_eur: 500.0,
+      collected_weight_kg: 210.0
+    },
+    site_coordinates: {
+      type: "Point",
+      coordinates: [-6.3300, 53.3420]
+    }
+  }
+])
+
+
+
+// query #1 Display hazardous incidents
+
+db.hazardousIncidents.find(
+  {},
+  {
+    _id: 0,
+    incident_id: 1,
+    reported_date: 1,
+    waste_type: 1,
+    hazard_level: 1,
+    status: 1,
+    "address.district": 1
+  }
+).sort({ reported_date: -1 })
+
