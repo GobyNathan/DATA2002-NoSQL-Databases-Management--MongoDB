@@ -9,7 +9,7 @@
 ---
 
 ## Project Structure
-- [`MongoDB/`](./MongoDB/) — Modular Python package for Part 4 (20 Marks):
+- [`MongoDB/`](./MongoDB/) — Modular Python package for Part 4:
   - [`MongoDB.py`](./MongoDB/MongoDB.py) — Main CLI entry point (`python3 MongoDB/MongoDB.py`).
   - [`cli.py`](./MongoDB/cli.py) — Interactive console menus and main application loop.
   - [`config.py`](./MongoDB/config.py) — Database URI, collection constants, and connection factory.
