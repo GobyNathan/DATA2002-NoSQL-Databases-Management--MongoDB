@@ -582,3 +582,272 @@ db.hazardousIncidents.find(
   }
 ).sort({ reported_date: -1 })
 
+// Query #2: Find high-risk incidents that are not contained.
+db.hazardousIncidents.find(
+  {
+    hazard_level: { $gte: 4.0 },
+    is_contained: false
+  },
+  {
+    _id: 0,
+    incident_id: 1,
+    hazard_level: 1,
+    is_contained: 1,
+    status: 1
+  }
+).sort({ hazard_level: -1 })
+
+// Query #3: Find incidents involving selected waste types.
+db.hazardousIncidents.find(
+  {
+    waste_type: {
+      $in: ["asbestos", "industrial_solvents"]
+    }
+  },
+  {
+    _id: 0,
+    incident_id: 1,
+    waste_type: 1,
+    hazard_level: 1
+  }
+)
+
+// Query #4: Find confirmed violations with unpaid fines.
+db.patrolInspections.find(
+  {
+    infraction_confirmed: true,
+    fine_issued: true,
+    "fine_details.payment_status": {
+      $exists: true,
+      $not: /^paid$/i
+    }
+  },
+  {
+    _id: 0,
+    inspection_id: 1,
+    incident_ref: 1,
+    violations_detected: 1,
+    fine_details: 1
+  }
+)
+
+// Query #5: Find the five districts with the most unresolved incidents.
+db.hazardousIncidents.aggregate([
+  {
+    $match: {
+      status: { $nin: ["Remediated", "Closed"] }
+    }
+  },
+  {
+    $group: {
+      _id: "$address.district",
+      unresolved_incidents: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { unresolved_incidents: -1 }
+  },
+  {
+    $limit: 5
+  }
+])
+
+// Query #6: Find the most active verified reporters in the last six months.
+db.hazardousIncidents.aggregate([
+  {
+    $match: {
+      "citizen_reporter.verified_reporter": true,
+      reported_date: {
+        $gte: new Date(new Date().setMonth(new Date().getMonth() - 6))
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$citizen_reporter.username",
+      reports: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { reports: -1 }
+  }
+])
+
+// Query #7: Calculate fines grouped by payment status and violation type.
+db.patrolInspections.aggregate([
+  {
+    $match: {
+      fine_issued: true,
+      "fine_details.amount_eur": { $exists: true }
+    }
+  },
+  {
+    $unwind: "$violations_detected"
+  },
+  {
+    $group: {
+      _id: {
+        payment_status: "$fine_details.payment_status",
+        violation: "$violations_detected"
+      },
+      total_fines_eur: { $sum: "$fine_details.amount_eur" },
+      average_fine_eur: { $avg: "$fine_details.amount_eur" },
+      fines_issued: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { total_fines_eur: -1 }
+  }
+])
+
+// Query #8: Calculate collected waste and cleanup costs by waste category.
+db.patrolInspections.aggregate([
+  {
+    $match: {
+      cleanup_required: true,
+      "dispatch_cleanup_crew.collected_weight_kg": { $exists: true },
+      "dispatch_cleanup_crew.cost_eur": { $exists: true }
+    }
+  },
+  {
+    $lookup: {
+      from: "hazardousIncidents",
+      localField: "incident_ref",
+      foreignField: "incident_id",
+      as: "incident"
+    }
+  },
+  {
+    $unwind: "$incident"
+  },
+  {
+    $unwind: "$incident.waste_type"
+  },
+  {
+    $group: {
+      _id: "$incident.waste_type",
+      total_collected_weight_kg: {
+        $sum: "$dispatch_cleanup_crew.collected_weight_kg"
+      },
+      total_cleanup_cost_eur: {
+        $sum: "$dispatch_cleanup_crew.cost_eur"
+      }
+    }
+  },
+  {
+    $sort: { total_collected_weight_kg: -1 }
+  }
+])
+
+// Query #9: Find incidents near a specified Dublin location.
+db.hazardousIncidents.find(
+  {
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [-6.2603, 53.3498]
+        },
+        $maxDistance: 5000
+      }
+    }
+  },
+  {
+    _id: 0,
+    incident_id: 1,
+    hazard_level: 1,
+    status: 1,
+    location: 1,
+    address: 1
+  }
+)
+
+// Query #10: Find incidents reported within a date range.
+db.hazardousIncidents.find(
+  {
+    reported_date: {
+      $gte: ISODate("2026-01-01T00:00:00Z"),
+      $lt: ISODate("2026-04-01T00:00:00Z")
+    }
+  },
+  {
+    _id: 0,
+    incident_id: 1,
+    reported_date: 1,
+    status: 1,
+    address: 1
+  }
+).sort({ reported_date: 1 })
+
+// Query #11: Find inspections carried out within a date range.
+db.patrolInspections.find(
+  {
+    inspection_date: {
+      $gte: ISODate("2026-01-01T00:00:00Z"),
+      $lt: ISODate("2026-04-01T00:00:00Z")
+    }
+  },
+  {
+    _id: 0,
+    inspection_id: 1,
+    incident_ref: 1,
+    inspection_date: 1,
+    infraction_confirmed: 1
+  }
+).sort({ inspection_date: 1 })
+
+// Query #12: Join incidents with their inspection history.
+db.hazardousIncidents.aggregate([
+  {
+    $lookup: {
+      from: "patrolInspections",
+      localField: "incident_id",
+      foreignField: "incident_ref",
+      as: "inspection_history"
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      incident_id: 1,
+      reported_date: 1,
+      hazard_level: 1,
+      status: 1,
+      inspection_history: 1
+    }
+  }
+])
+
+// Security: Create a role with CRUD access to both collections.
+db.createRole({
+  role: "adminRole",
+  privileges: [
+    {
+      resource: {
+        db: "urban_waste_db",
+        collection: "hazardousIncidents"
+      },
+      actions: ["find", "insert", "update", "remove"]
+    },
+    {
+      resource: {
+        db: "urban_waste_db",
+        collection: "patrolInspections"
+      },
+      actions: ["find", "insert", "update", "remove"]
+    }
+  ],
+  roles: []
+})
+
+// Security: Create the Admin user and assign the role.
+db.createUser({
+  user: "Admin",
+  pwd: "pa33word",
+  roles: [
+    {
+      role: "adminRole",
+      db: "urban_waste_db"
+    }
+  ]
+})
