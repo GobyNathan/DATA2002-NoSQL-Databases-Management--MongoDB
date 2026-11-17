@@ -425,7 +425,7 @@ db.patrolInspections.insertMany([
   },
   {
     inspection_id: "INS-2026-106",
-    incident_ref: "INC-2026-006",
+    incident_ref: "INC-2026-003",
     inspection_date: ISODate("2026-10-29"),
     patrol_officer: {
       badge_id: "OFF-006",
@@ -601,7 +601,7 @@ db.hazardousIncidents.find(
 db.hazardousIncidents.find(
   {
     waste_type: {
-      $in: ["asbestos", "industrial_solvents"]
+      $in: ["Asbestos", "Solvents"]
     }
   },
   {
@@ -766,8 +766,8 @@ db.hazardousIncidents.find(
 db.hazardousIncidents.find(
   {
     reported_date: {
-      $gte: ISODate("2026-01-01T00:00:00Z"),
-      $lt: ISODate("2026-04-01T00:00:00Z")
+      $gte: ISODate("2026-10-01T00:00:00Z"),
+      $lt: ISODate("2026-11-01T00:00:00Z")
     }
   },
   {
@@ -783,8 +783,8 @@ db.hazardousIncidents.find(
 db.patrolInspections.find(
   {
     inspection_date: {
-      $gte: ISODate("2026-01-01T00:00:00Z"),
-      $lt: ISODate("2026-04-01T00:00:00Z")
+      $gte: ISODate("2026-11-01T00:00:00Z"),
+      $lt: ISODate("2026-12-01T00:00:00Z")
     }
   },
   {
@@ -815,6 +815,135 @@ db.hazardousIncidents.aggregate([
       status: 1,
       inspection_history: 1
     }
+  }
+])
+
+// Query #13: Calculate patrol response time efficiency by city district.
+db.hazardousIncidents.aggregate([
+  {
+    $lookup: {
+      from: "patrolInspections",
+      localField: "incident_id",
+      foreignField: "incident_ref",
+      as: "inspections"
+    }
+  },
+  {
+    $unwind: "$inspections"
+  },
+  {
+    $addFields: {
+      response_time_hours: {
+        $divide: [
+          { $subtract: ["$inspections.inspection_date", "$reported_date"] },
+          1000 * 60 * 60
+        ]
+      }
+    }
+  },
+  {
+    $match: {
+      response_time_hours: { $gte: 0 }
+    }
+  },
+  {
+    $group: {
+      _id: "$address.district",
+      inspected_incidents_count: { $sum: 1 },
+      avg_response_time_hours: { $avg: "$response_time_hours" },
+      fastest_response_hours: { $min: "$response_time_hours" },
+      slowest_response_hours: { $max: "$response_time_hours" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      district: "$_id",
+      inspected_incidents_count: 1,
+      avg_response_time_hours: { $round: ["$avg_response_time_hours", 2] },
+      fastest_response_hours: { $round: ["$fastest_response_hours", 2] },
+      slowest_response_hours: { $round: ["$slowest_response_hours", 2] }
+    }
+  },
+  {
+    $sort: { avg_response_time_hours: 1 }
+  }
+])
+
+// Query #14: Analyze recurrence and volume impact of hazardous waste categories.
+db.hazardousIncidents.aggregate([
+  {
+    $unwind: "$waste_type"
+  },
+  {
+    $group: {
+      _id: "$waste_type",
+      occurrence_count: { $sum: 1 },
+      total_volume_m: { $sum: "$estimated_volume_m" },
+      avg_hazard_level: { $avg: "$hazard_level" },
+      uncontained_incidents: {
+        $sum: {
+          $cond: [{ $eq: ["$is_contained", false] }, 1, 0]
+        }
+      },
+      affected_districts: { $addToSet: "$address.district" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      hazardous_material: "$_id",
+      occurrence_count: 1,
+      total_volume_m: { $round: ["$total_volume_m", 2] },
+      avg_hazard_level: { $round: ["$avg_hazard_level", 2] },
+      uncontained_incidents: 1,
+      affected_districts: 1
+    }
+  },
+  {
+    $sort: { occurrence_count: -1, total_volume_m: -1 }
+  }
+])
+
+// Query #15: Identify high-risk uninspected incidents requiring urgent patrol dispatch.
+db.hazardousIncidents.aggregate([
+  {
+    $match: {
+      hazard_level: { $gte: 4.0 },
+      status: { $nin: ["Remediated", "Closed"] }
+    }
+  },
+  {
+    $lookup: {
+      from: "patrolInspections",
+      localField: "incident_id",
+      foreignField: "incident_ref",
+      as: "linked_inspections"
+    }
+  },
+  {
+    $match: {
+      linked_inspections: { $size: 0 }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      incident_id: 1,
+      reported_date: 1,
+      hazard_level: 1,
+      is_contained: 1,
+      status: 1,
+      waste_type: 1,
+      estimated_volume_m: 1,
+      district: "$address.district",
+      street: "$address.street",
+      gps_coordinates: "$location.coordinates",
+      reporter_contact: "$citizen_reporter.contact_phone"
+    }
+  },
+  {
+    $sort: { hazard_level: -1, reported_date: 1 }
   }
 ])
 
