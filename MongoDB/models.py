@@ -7,13 +7,13 @@ def build_new_incident_doc() -> Dict[str, Any]:
     print("\n--- Enter Hazardous Incident Details ---")
     incident_id = prompt_str("Incident ID (e.g. INC-2026-011)", default="INC-2026-011")
     waste_type = prompt_list(
-        "Waste Types", default_list=["asbestos", "industrial_solvents"]
+        "Waste Types", default_list=["Asbestos", "Solvents"]
     )
     hazard_level = prompt_float(
         "Hazard Level (1.0 to 5.0)", default=4.0, min_val=1.0, max_val=5.0
     )
     is_contained = prompt_bool("Is the hazard currently contained?", default=False)
-    estimated_volume_m3 = prompt_float(
+    estimated_volume_m = prompt_float(
         "Estimated Volume (m3)", default=2.5, min_val=0.01
     )
 
@@ -70,14 +70,14 @@ def build_new_incident_doc() -> Dict[str, Any]:
             "is_anonymous": is_anonymous,
             "verified_reporter": verified_reporter,
         },
-        "estimated_volume_m3": estimated_volume_m3,
+        "estimated_volume_m": estimated_volume_m,
         "status": status,
     }
 
 def build_new_inspection_doc() -> Dict[str, Any]:
     print("\n--- Enter Patrol Inspection Details ---")
     inspection_id = prompt_str(
-        "Inspection ID (e.g. INS-2026-8811)", default="INS-2026-8811"
+        "Inspection ID (e.g. INS-2026-111)", default="INS-2026-111"
     )
     incident_ref = prompt_str(
         "Referenced Incident ID (incident_ref, e.g. INC-2026-001)",

@@ -47,7 +47,7 @@ def update_existing_document(collection: Collection) -> None:
     key_label = (
         "incident_id (e.g. INC-2026-001)"
         if collection.name == COLLECTION_INCIDENTS
-        else "inspection_id (e.g. INS-2026-8801)"
+        else "inspection_id (e.g. INS-2026-101)"
     )
     identifier = prompt_str(f"Enter {key_label} or _id to update")
     query_filter = build_identifier_filter(collection.name, identifier)
@@ -68,7 +68,7 @@ def update_existing_document(collection: Collection) -> None:
                 "  1. status (Open / Under Inspection / Remediated / Closed)\n"
                 "  2. is_contained (Boolean)\n"
                 "  3. hazard_level (Double 1.0 - 5.0)\n"
-                "  4. estimated_volume_m3 (Double)\n"
+                "  4. estimated_volume_m (Double)\n"
                 "  5. Add a waste type to waste_type array"
             )
             choice = prompt_str("Choose option (1-5)", default="1")
@@ -88,11 +88,11 @@ def update_existing_document(collection: Collection) -> None:
                     max_val=5.0,
                 )
             elif choice == "4":
-                update_fields["estimated_volume_m3"] = prompt_float(
+                update_fields["estimated_volume_m"] = prompt_float(
                     "New Estimated Volume (m3)", default=1.5, min_val=0.01
                 )
             elif choice == "5":
-                new_waste = prompt_str("Waste type to add", default="lead_batteries")
+                new_waste = prompt_str("Waste type to add", default="Batteries")
                 res = collection.update_one(
                     {"_id": existing["_id"]},
                     {"$addToSet": {"waste_type": new_waste}},
@@ -159,7 +159,7 @@ def delete_existing_document(collection: Collection) -> None:
     key_label = (
         "incident_id (e.g. INC-2026-011)"
         if collection.name == COLLECTION_INCIDENTS
-        else "inspection_id (e.g. INS-2026-8811)"
+        else "inspection_id (e.g. INS-2026-111)"
     )
     identifier = prompt_str(f"Enter {key_label} or _id to delete")
     query_filter = build_identifier_filter(collection.name, identifier)
